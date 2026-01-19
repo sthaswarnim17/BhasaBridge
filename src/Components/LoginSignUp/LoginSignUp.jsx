@@ -1,4 +1,4 @@
-import React, { act, useState } from 'react';
+import React, { useState } from 'react';
 import './LoginSignUp.css'
 
 import user_icon from '../Assets/person.png'
@@ -7,8 +7,72 @@ import password_icon from '../Assets/password.png'
 
 
 const LoginSignUp = () => {
-
     const [action, setAction] = useState("Sign Up")
+    const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [message, setMessage] = useState("")
+
+    const resetMessage = () => setMessage("")
+
+    const submitSignUp = async () => {
+      resetMessage()
+      if (!name || !email || !password) {
+        setMessage("Please fill in Name, Email and Password.")
+        return
+      }
+      try {
+        setLoading(true)
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 'Name': name, 'Email Id': email, 'Password': password })
+        })
+        const data = await res.json().catch(() => ({}))
+        if (res.status === 201) {
+          setMessage('Registered successfully.')
+          setAction('Login')
+          setPassword("")
+        } else if (res.status === 409) {
+          setMessage('User already registered.')
+        } else {
+          setMessage(data?.Status || 'Registration failed.')
+        }
+      } catch (e) {
+        setMessage('Network error. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    const submitLogin = async () => {
+      resetMessage()
+      if (!email || !password) {
+        setMessage("Please fill in Email and Password.")
+        return
+      }
+      try {
+        setLoading(true)
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 'Email Id': email, 'Password': password })
+        })
+        const data = await res.json().catch(() => ({}))
+        if (res.status === 200) {
+          setMessage('Login successful.')
+        } else if (res.status === 401) {
+          setMessage('Invalid credentials.')
+        } else {
+          setMessage(data?.Status || 'Login failed.')
+        }
+      } catch (e) {
+        setMessage('Network error. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
 
   return (
     <div className='container'>
@@ -16,26 +80,56 @@ const LoginSignUp = () => {
         <div className="text">{action}</div>
         <div className="underline"></div>
       </div>
+      {message && (
+        <div style={{ color: '#0d4e82', textAlign: 'center', marginTop: 10 }}>{message}</div>
+      )}
       <div className="inputs">
         {action==="Login"?<div></div>:
         <div className="input">
             <img src={user_icon} alt="" />
-            <input type="text" placeholder='Name' />
+            <input
+              type="text"
+              placeholder='Name'
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
         </div>}
         <div className="input">
             <img src={email_icon} alt="" />
-            <input type="email" placeholder='Email Id' />
+            <input
+              type="email"
+              placeholder='Email Id'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
         </div>
         <div className="input">
             <img src={password_icon} alt="" />
-            <input type="password" placeholder='Password' />
+            <input
+              type="password"
+              placeholder='Password'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
         </div>
       </div>
       {action==="Sign Up"? <div></div>:
       <div className="forgot-password">Lost Password? <span>Click Here!</span></div>}
       <div className="submit-container">
-        <div className={action==="Login"?"submit gray":"submit"} onClick={() => {setAction("Sign Up")}}>Sign Up</div>
-        <div className={action==="Sign Up"? "submit gray":"submit"} onClick={() => {setAction("Login")}}>Login</div>
+        <div
+          className={action==="Login"?"submit gray":"submit"}
+          onClick={() => { action === 'Sign Up' ? submitSignUp() : setAction('Sign Up') }}
+          style={{ opacity: loading ? 0.7 : 1, pointerEvents: loading ? 'none' : 'auto' }}
+        >
+          Sign Up
+        </div>
+        <div
+          className={action==="Sign Up"? "submit gray":"submit"}
+          onClick={() => { action === 'Login' ? submitLogin() : setAction('Login') }}
+          style={{ opacity: loading ? 0.7 : 1, pointerEvents: loading ? 'none' : 'auto' }}
+        >
+          Login
+        </div>
       </div>
     </div>
   );
