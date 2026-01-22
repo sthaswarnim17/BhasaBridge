@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './LoginSignUp.css'
+import ForgotPassword from './ForgotPassword';
 
 import user_icon from './person.png'
 import email_icon from './email.png'
@@ -8,6 +9,7 @@ import password_icon from './password.png'
 
 const LoginSignUp = () => {
     const [action, setAction] = useState("Sign Up")
+    const [showForgotPassword, setShowForgotPassword] = useState(false)
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -19,7 +21,7 @@ const LoginSignUp = () => {
     const submitSignUp = async () => {
       resetMessage()
       if (!name || !email || !password) {
-        setMessage("Please fill in Name, Email and Password.")
+        setMessage("Please fill in Name, Email or Password.")
         return
       }
       try {
@@ -74,6 +76,14 @@ const LoginSignUp = () => {
       }
     }
 
+    // If forgot password is active, show that component
+    if (showForgotPassword) {
+      return <ForgotPassword onBack={() => {
+        setShowForgotPassword(false);
+        setAction('Login');
+      }} />;
+    }
+
   return (
     <div className='container'>
       <div className="header">
@@ -114,7 +124,9 @@ const LoginSignUp = () => {
         </div>
       </div>
       {action==="Sign Up"? <div></div>:
-      <div className="forgot-password">Lost Password? <span>Click Here!</span></div>}
+      <div className="forgot-password">
+        Lost Password? <span onClick={() => setShowForgotPassword(true)}>Click Here!</span>
+      </div>}
       <div className="submit-container">
         <div
           className={action==="Login"?"submit gray":"submit"}
