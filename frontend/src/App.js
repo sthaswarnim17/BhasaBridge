@@ -1,11 +1,17 @@
-import './App.css';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import LoginSignUp from './components/Auth/LoginSignUp';
-import NavigationBar from './components/NavigationBar/NavigationBar';
-import Dashboard from './components/Dashboard/Dashboard';
-import Lessons from './components/Lessons/Lessons';
-import Quiz from './components/Quiz/Quiz';
-import ProtectedRoute from './components/ProtectedRoute';
+import "./App.css";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import LoginSignUp from "./components/Auth/LoginSignUp";
+import NavigationBar from "./components/NavigationBar/NavigationBar";
+import Dashboard from "./components/Dashboard/Dashboard";
+import Lessons from "./components/Lessons/Lessons";
+import Quiz from "./components/Quiz/Quiz";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LandingPage from "./components/landing";
 
 function App() {
   return (
@@ -17,14 +23,20 @@ function App() {
 
 function AppContent() {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+  const isNavHidden = location.pathname === "/login" || location.pathname === "/";
 
   return (
     <div>
-      {!isLoginPage && <NavigationBar />}
+      {!isNavHidden && <NavigationBar />}
       <Routes>
         <Route
           path="/"
+          element={
+            <LandingPage />
+          }
+        />
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
