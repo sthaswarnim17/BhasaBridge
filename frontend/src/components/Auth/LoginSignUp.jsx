@@ -31,6 +31,7 @@ const LoginSignUp = () => {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           Name: name,
           "Email Id": email,
@@ -65,13 +66,16 @@ const LoginSignUp = () => {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ "Email Id": email, Password: password }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 200) {
         setMessage("Login successful.");
-        // Store username in localStorage
-        localStorage.setItem("username", data.name);
+        localStorage.setItem(
+          "username",
+          data.Username || data.name || name || email,
+        );
         // Redirect to dashboard
         setTimeout(() => navigate("/"), 500);
       } else if (res.status === 401) {
