@@ -1,21 +1,201 @@
-import sqlite3
-
-
-DB = 'users.db'
+import pymysql
+import os
+from quiz.seed_data import LESSON_SEED_DATA, QUIZ_SEED_DATA, SOURCE_URL
 
 def connect_db():
-	return sqlite3.connect(DB)
+	return pymysql.connect(
+		host=os.getenv('DB_HOST'),
+		user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        charset='utf8mb4'
+	)
+
+
+def _seed_lessons(cursor):
+    for item in LESSON_SEED_DATA:
+        cursor.execute(
+            """
+            INSERT INTO lesson (level, item_type, english_text, newari_text, romanized_text, source_url)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                romanized_text = VALUES(romanized_text),
+                source_url = VALUES(source_url),
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (
+                item['level'],
+                item['item_type'],
+                item['english_text'],
+                item['newari_text'],
+                item.get('romanized_text'),
+                SOURCE_URL,
+            ),
+        )
+
+
+def _seed_quizzes(cursor):
+    for quiz in QUIZ_SEED_DATA:
+        cursor.execute(
+            """
+            SELECT id FROM lesson
+            WHERE level=%s
+            ORDER BY id ASC
+            LIMIT 1
+            """,
+            (quiz['level'],),
+        )
+        lesson_row = cursor.fetchone()
+        lesson_id = lesson_row['id'] if lesson_row else None
+
+        cursor.execute(
+            """
+            INSERT INTO quiz (
+                level, lesson_id, question_text,
+                option_a, option_b, option_c, option_d,
+                correct_option, explanation, source_url
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                lesson_id = VALUES(lesson_id),
+                option_a = VALUES(option_a),
+                option_b = VALUES(option_b),
+                option_c = VALUES(option_c),
+                option_d = VALUES(option_d),
+                correct_option = VALUES(correct_option),
+                explanation = VALUES(explanation),
+                source_url = VALUES(source_url),
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (
+                quiz['level'],
+                lesson_id,
+                quiz['question_text'],
+                quiz['option_a'],
+                quiz['option_b'],
+                quiz['option_c'],
+                quiz['option_d'],
+                quiz['correct_option'],
+                quiz.get('explanation'),
+                SOURCE_URL,
+            ),
+        )
 
 def init_db():
-	with connect_db() as db:
-		db.execute('''
-			CREATE TABLE IF NOT EXISTS users(
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				name TEXT,
-				email TEXT UNIQUE,
-				password TEXT
-				)
-			''')
-		db.commit()
+    conn = connect_db()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("CREATE DATABASE IF NOT EXISTS Bhasabridge")
+    cursor.execute("USE Bhasabridge")
+
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        role ENUM('learner','admin') DEFAULT 'learner',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS lesson (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        level ENUM('easy', 'intermediate', 'hard') NOT NULL,
+        item_type ENUM('word', 'sentence') NOT NULL,
+        english_text VARCHAR(500) NOT NULL,
+        newari_text VARCHAR(500) NOT NULL,
+        english_hash CHAR(64) GENERATED ALWAYS AS (SHA2(english_text, 256)) STORED,
+        newari_hash CHAR(64) GENERATED ALWAYS AS (SHA2(newari_text, 256)) STORED,
+        romanized_text VARCHAR(500) NULL,
+        source_url VARCHAR(500) NOT NULL DEFAULT 'https://www.easynepalityping.com/useful-newari-phrases',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_lesson_unique (level, item_type, english_hash, newari_hash),
+        INDEX idx_lesson_level_type (level, item_type)
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quiz (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        level ENUM('easy', 'intermediate', 'hard') NOT NULL,
+        lesson_id INT NULL,
+        question_text VARCHAR(500) NOT NULL,
+        question_hash CHAR(64) GENERATED ALWAYS AS (SHA2(question_text, 256)) STORED,
+        option_a VARCHAR(300) NOT NULL,
+        option_b VARCHAR(300) NOT NULL,
+        option_c VARCHAR(300) NOT NULL,
+        option_d VARCHAR(300) NOT NULL,
+        correct_option ENUM('A', 'B', 'C', 'D') NOT NULL,
+        explanation VARCHAR(600) NULL,
+        source_url VARCHAR(500) NOT NULL DEFAULT 'https://www.easynepalityping.com/useful-newari-phrases',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_quiz_lesson FOREIGN KEY (lesson_id) REFERENCES lesson(id) ON DELETE SET NULL,
+        UNIQUE KEY uq_quiz_level_question (level, question_hash),
+        INDEX idx_quiz_level (level),
+        INDEX idx_quiz_lesson (lesson_id)
+    )
+    """)
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quiz_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        level ENUM('easy', 'intermediate', 'hard') NOT NULL,
+        total_questions INT NOT NULL DEFAULT 0,
+        correct_answers INT NOT NULL DEFAULT 0,
+        score_percent DECIMAL(5,2) DEFAULT 0.00,
+        status ENUM('in_progress', 'completed', 'abandoned') DEFAULT 'in_progress',
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP NULL,
+        CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_session_user (user_id),
+        INDEX idx_session_level (level),
+        INDEX idx_session_status (status)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quiz_attempts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        session_id INT NOT NULL,
+        user_id INT NOT NULL,
+        quiz_id INT NOT NULL,
+        selected_option ENUM('A', 'B', 'C', 'D') NOT NULL,
+        is_correct TINYINT(1) NOT NULL DEFAULT 0,
+        answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_attempt_session FOREIGN KEY (session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE,
+        CONSTRAINT fk_attempt_user  FOREIGN KEY (user_id)    REFERENCES users(id)         ON DELETE CASCADE,
+        CONSTRAINT fk_attempt_quiz  FOREIGN KEY (quiz_id)    REFERENCES quiz(id)          ON DELETE CASCADE,
+        UNIQUE KEY uq_session_quiz (session_id, quiz_id),
+        INDEX idx_attempt_user    (user_id),
+        INDEX idx_attempt_session (session_id)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_level_progress (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        level ENUM('easy', 'intermediate', 'hard') NOT NULL,
+        total_sessions INT NOT NULL DEFAULT 0,
+        total_questions_answered INT NOT NULL DEFAULT 0,
+        total_correct INT NOT NULL DEFAULT 0,
+        best_score_percent DECIMAL(5,2) DEFAULT 0.00,
+        last_played_at TIMESTAMP NULL,
+        CONSTRAINT fk_progress_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY uq_user_level (user_id, level),
+        INDEX idx_progress_user (user_id)
+    )
+    """)
+
+    _seed_lessons(cursor)
+    _seed_quizzes(cursor)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
 
 
