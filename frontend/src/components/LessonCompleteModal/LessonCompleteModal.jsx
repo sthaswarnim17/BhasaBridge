@@ -1,4 +1,5 @@
 import React from "react";
+import { Trophy } from "lucide-react";
 import "./LessonCompleteModal.css";
 
 const LessonCompleteModal = ({ result, onContinue }) => {
@@ -30,7 +31,7 @@ const LessonCompleteModal = ({ result, onContinue }) => {
     <div className="lcm-overlay" onClick={onContinue}>
       <div className="lcm-card" onClick={(e) => e.stopPropagation()}>
         <div className="lcm-trophy" aria-hidden="true">
-          T
+          <Trophy size={58} strokeWidth={1.8} />
         </div>
         <h2 className="lcm-title">
           {already_completed ? "Unit Review Complete" : "Lesson Complete!"}
@@ -87,11 +88,15 @@ const LessonCompleteModal = ({ result, onContinue }) => {
 
         <div className="lcm-summary-grid">
           <div className="lcm-summary-card">
-            <span>{already_completed ? "Reviewed Unit" : "Unit Completed"}</span>
+            <span>
+              {already_completed ? "Reviewed Unit" : "Unit Completed"}
+            </span>
             <strong>{completed_unit_title}</strong>
           </div>
           <div className="lcm-summary-card">
-            <span>{already_completed ? "Next Suggested Unit" : "Next Unit Unlocked"}</span>
+            <span>
+              {already_completed ? "Next Suggested Unit" : "Next Unit Unlocked"}
+            </span>
             <strong>{nextUnitLabel}</strong>
           </div>
           <div className="lcm-summary-card">

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Lock, Sparkles } from "lucide-react";
 import "./ReviewLoop.css";
 
 const OPTION_KEYS = ["A", "B", "C", "D"];
@@ -148,58 +149,49 @@ const ReviewLoop = () => {
   if (error) {
     return (
       <div className="review-loop-page">
-        <div className="review-loop-card review-loop-empty">
-          <h2>Review Loop</h2>
+        <div className="review-loop-card review-loop-error">
+          <h2 style={{ color: "#d9534f" }}>Error</h2>
           <p>{error}</p>
-          <div className="review-loop-actions">
-            <button className="review-btn primary" onClick={loadDueItems}>
-              Try Again
-            </button>
-            <button
-              className="review-btn ghost"
-              onClick={() => navigate("/quiz")}
-            >
-              Go to Practice Hub
-            </button>
-          </div>
+          <button className="review-btn primary" onClick={loadDueItems}>
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
-  if (!items.length) {
-    if (reviewLocked) {
-      return (
-        <div className="review-loop-page">
-          <div className="review-loop-card review-loop-empty">
-            <h2>Review Loop Locked</h2>
-            <p>{lockMessage}</p>
-            <p className="review-muted">
-              Finish at least one guided lesson first, then review will unlock.
-            </p>
-            <div className="review-loop-actions">
-              <button
-                className="review-btn primary"
-                onClick={() => navigate("/lessons")}
-              >
-                Start First Lesson
-              </button>
-              <button className="review-btn ghost" onClick={loadDueItems}>
-                Refresh
-              </button>
-            </div>
+  if (reviewLocked) {
+    return (
+      <div className="review-loop-page">
+        <div className="review-loop-card review-loop-locked">
+          <div className="intro-icon-wrapper" style={{ margin: "0 auto 24px" }}>
+            <Lock size={28} className="intro-icon" />
           </div>
+          <h2>Review Locked</h2>
+          <p>{lockMessage}</p>
+          <button
+            className="review-btn primary"
+            onClick={() => navigate("/lessons")}
+          >
+            Start First Lesson
+          </button>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
+  if (items.length === 0) {
     return (
       <div className="review-loop-page">
         <div className="review-loop-card review-loop-empty">
-          <h2>Review Loop</h2>
-          <p>You have no due review items right now.</p>
-          <p className="review-muted">
-            Come back tomorrow, or do a free practice round now.
+          <div className="intro-icon-wrapper" style={{ margin: "0 auto 24px" }}>
+            <Sparkles size={28} className="intro-icon" />
+          </div>
+          <h2>All Caught Up!</h2>
+          <p>You have no due review items right now. Excellent consistency!</p>
+          <p className="review-muted" style={{ marginBottom: "24px" }}>
+            Check back tomorrow for fresh spaced-repetition, or dive into a new
+            lesson.
           </p>
           <div className="review-loop-actions">
             <button
@@ -265,6 +257,7 @@ const ReviewLoop = () => {
     );
   }
 
+  if (!currentItem) return null;
   const progressPercent = Math.round(((currentIndex + 1) / items.length) * 100);
   const optionMap = {
     A: currentItem.option_a,

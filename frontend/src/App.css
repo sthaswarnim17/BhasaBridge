@@ -50,3 +50,16 @@
     transform: rotate(360deg);
   }
 }
+@media (max-width: 768px) {
+  .top-header {
+    left: 0;
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 768px) { .top-header { justify-content: center; } }
+
+.mobile-top-logo { display: none; }
+@media (max-width: 768px) { .mobile-top-logo { display: block; height: 32px; margin-right: auto; } }
+
+@media (max-width: 768px) { .mobile-top-logo { height: 48px !important; } }

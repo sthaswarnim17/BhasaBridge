@@ -85,7 +85,7 @@ const Dashboard = () => {
             : "No locked units right now",
           detail: nextLesson
             ? `${nextLesson.level} level`
-            : "Keep reviewing or deepen your free practice.",
+            : "Keep reviewing or deepen your open practice.",
         },
         {
           title: "Weak Topics",

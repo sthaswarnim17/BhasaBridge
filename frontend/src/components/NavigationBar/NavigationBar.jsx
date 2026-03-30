@@ -39,13 +39,6 @@ function NavigationBar() {
     <div className="left-sidebar">
       <div className="logo-div">
         <img src="/bhasabridge_logo.png" alt="Logo" className="Logo" />
-        <div className="logo-copy">
-          <span>
-          <span style={{ color: "#103562" }}>Bhasa</span>
-          <span style={{ color: "#5bbac6" }}>Bridge</span>
-          </span>
-          <small>Learn Nepal Bhasa with guided practice</small>
-        </div>
       </div>
 
       <div className="nav-container">

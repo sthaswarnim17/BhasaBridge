@@ -27,6 +27,7 @@ function AppContent() {
       {!hideShell && <NavigationBar />}
       {!hideShell && (
         <div className="top-header">
+          <img src="/thumbnail.png" alt="BhasaBridge Logo" className="mobile-top-logo" />
           <StatsBar />
         </div>
       )}

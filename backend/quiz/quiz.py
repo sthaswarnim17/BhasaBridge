@@ -11,6 +11,19 @@ VALID_ITEM_TYPES = ['word', 'sentence']
 VALID_OPTIONS = ['A', 'B', 'C', 'D']
 
 
+def _parse_int(value, default, minimum=None, maximum=None):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+
+    if minimum is not None:
+        parsed = max(minimum, parsed)
+    if maximum is not None:
+        parsed = min(maximum, parsed)
+    return parsed
+
+
 def _is_admin(cursor, user_id):
     cursor.execute('SELECT role FROM users WHERE id=%s', (user_id,))
     user = cursor.fetchone()
@@ -50,8 +63,8 @@ def _validate_quiz_payload(data):
 def list_lessons():
     level = request.args.get('level')
     item_type = request.args.get('item_type')
-    limit = int(request.args.get('limit', 50))
-    offset = int(request.args.get('offset', 0))
+    limit = _parse_int(request.args.get('limit', 50), 50, minimum=1, maximum=200)
+    offset = _parse_int(request.args.get('offset', 0), 0, minimum=0)
 
     filters = []
     params = []
@@ -267,8 +280,8 @@ def list_quizzes():
     lesson_id = request.args.get('lesson_id')
     lesson_ids_raw = request.args.get('lesson_ids')  # comma-separated list of lesson IDs
     unique_by_lesson = str(request.args.get('unique_by_lesson', '')).lower() in ['1', 'true', 'yes']
-    limit = int(request.args.get('limit', 50))
-    offset = int(request.args.get('offset', 0))
+    limit = _parse_int(request.args.get('limit', 50), 50, minimum=1, maximum=200)
+    offset = _parse_int(request.args.get('offset', 0), 0, minimum=0)
 
     filters = []
     params = []
@@ -276,17 +289,19 @@ def list_quizzes():
         filters.append('q.level=%s')
         params.append(level)
     if lesson_id:
+        if not str(lesson_id).isdigit():
+            return jsonify({'Status': 'lesson_id must be a positive integer'}), 400
         filters.append('q.lesson_id=%s')
         params.append(int(lesson_id))
     if lesson_ids_raw:
-        try:
-            lesson_ids = [int(x.strip()) for x in lesson_ids_raw.split(',') if x.strip().isdigit()]
-            if lesson_ids:
-                placeholders = ','.join(['%s'] * len(lesson_ids))
-                filters.append(f'q.lesson_id IN ({placeholders})')
-                params.extend(lesson_ids)
-        except ValueError:
-            pass
+        lesson_id_tokens = [x.strip() for x in str(lesson_ids_raw).split(',') if x.strip()]
+        if lesson_id_tokens:
+            if not all(token.isdigit() for token in lesson_id_tokens):
+                return jsonify({'Status': 'lesson_ids must be a comma-separated list of integers'}), 400
+            lesson_ids = [int(x) for x in lesson_id_tokens]
+            placeholders = ','.join(['%s'] * len(lesson_ids))
+            filters.append(f'q.lesson_id IN ({placeholders})')
+            params.extend(lesson_ids)
 
     where_clause = f"WHERE {' AND '.join(filters)}" if filters else ''
 
@@ -492,7 +507,7 @@ def get_random_quiz():
     Correct answers are hidden – suitable for frontend quiz practice UI.
     """
     level = (request.args.get('level') or '').lower()
-    count = min(int(request.args.get('count', 5)), 20)
+    count = _parse_int(request.args.get('count', 5), 5, minimum=1, maximum=20)
 
     if level not in VALID_LESSON_LEVELS:
         return jsonify({'Status': 'level must be easy, intermediate, or hard'}), 400

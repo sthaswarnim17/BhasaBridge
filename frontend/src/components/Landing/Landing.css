@@ -113,7 +113,7 @@
 }
 
 .lp-logo img {
-    height: 38px;
+    height: 48px;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
@@ -977,4 +977,30 @@
         transition: none !important;
         transform: none !important;
     }
+}
+@media (max-width: 768px) {
+  .hero-title { font-size: 2.8rem; }
+  .hero-sub { font-size: 1.05rem; }
+  .sc-card { min-width: 100%; padding: 1.8rem; }
+  .showcase-track { flex-direction: column; align-items: stretch; gap: 1rem; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .steps-row { flex-direction: column; gap: 2.5rem; }
+  .lp-nav { flex-direction: column; gap: 12px; border-radius: 20px; padding: 1.2rem; }
+  .lp-hero { padding-top: 3rem; min-height: auto; padding-bottom: 4rem; }
+  .hero-bg-script { display: none; }
+  .culture-section, .how-section, .cta-section { padding: 4rem 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  .lp-hero { padding-top: 5.5rem; padding-bottom: 5.5rem; }
+  .hero-content { gap: 1.8rem; }
+  .btn-primary, .btn-outline { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 768px) {
+  .lp-nav { flex-direction: row !important; align-items: center; padding: 0.6rem 0.8rem !important; }
+  .logo-text { display: none; }
+  .lp-logo img { height: 28px !important; }
+  .btn-ghost, .btn-solid { padding: 0.4rem 0.8rem !important; font-size: 0.75rem !important; }
+  .lp-hero { padding-top: 7rem !important; }
 }

@@ -102,4 +102,14 @@
   font-weight: 700;
   color: var(--teal-dark);
   white-space: nowrap;
-}
+}
+@media (max-width: 768px) {
+  .stats-bar { gap: 6px; justify-content: center; width: 100%; }
+  .sb-streak, .sb-hearts { padding: 4px 8px; }
+  .sb-value { font-size: 0.8rem; }
+  .sb-heart svg { width: 14px; height: 14px; }
+  .sb-xp { padding: 4px 10px 4px 6px; gap: 4px; }
+  .sb-xp-bar { width: 50px; }
+  .sb-xp-text { display: none; }
+  .sb-divider { display: none; }
+}

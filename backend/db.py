@@ -62,7 +62,9 @@ def _seed_lessons(cursor):
 
 
 def _seed_quizzes(cursor):
+    seed_keys = []
     for quiz in QUIZ_SEED_DATA:
+        seed_keys.append((quiz['level'], quiz['question_text']))
         lesson_id = None
         # Try to find the specific lesson item this question is about
         linked = quiz.get('linked_english_text')
@@ -114,6 +116,20 @@ def _seed_quizzes(cursor):
                 quiz.get('explanation'),
                 SOURCE_URL,
             ),
+        )
+
+    # Keep curated quizzes only for this source URL.
+    # This prevents removed seeded quiz rows from lingering after seed updates.
+    if seed_keys:
+        placeholders = ','.join(['(%s,%s)'] * len(seed_keys))
+        flat_params = [x for row in seed_keys for x in row]
+        cursor.execute(
+            f'''
+            DELETE FROM quiz
+            WHERE source_url = %s
+              AND (level, question_text) NOT IN ({placeholders})
+            ''',
+            [SOURCE_URL] + flat_params,
         )
 
 def init_db():

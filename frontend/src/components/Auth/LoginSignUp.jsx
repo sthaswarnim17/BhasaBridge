@@ -131,10 +131,6 @@ const LoginSignUp = () => {
           alt="BhasaBridge Logo"
           className="login-logo"
         />
-        <div className="logo-text">
-          <span style={{ color: "#ffffff" }}>Bhasa</span>
-          <span style={{ color: "#5bbac6" }}>Bridge</span>
-        </div>
       </div>
       <div className="container">
         <div className="header">

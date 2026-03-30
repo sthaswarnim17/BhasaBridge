@@ -11,9 +11,11 @@ const ForgotPassword = ({ onBack }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("error");
 
   const handleRequestReset = async () => {
     setMessage("");
+    setMessageType("error");
     if (!email) {
       setMessage("Please enter your email.");
       return;
@@ -29,6 +31,7 @@ const ForgotPassword = ({ onBack }) => {
       const data = await res.json();
       if (res.ok) {
         setStep(2);
+        setMessageType("success");
         setMessage("Token sent to your email. It expires in 5 minutes.");
       } else {
         setMessage(data?.Status || "Failed to send reset email.");
@@ -42,6 +45,7 @@ const ForgotPassword = ({ onBack }) => {
 
   const handleResetPassword = async () => {
     setMessage("");
+    setMessageType("error");
     if (!token) {
       setMessage("Please enter the reset token from your email.");
       return;
@@ -68,6 +72,7 @@ const ForgotPassword = ({ onBack }) => {
       });
       const data = await res.json();
       if (res.ok) {
+        setMessageType("success");
         setMessage("Password reset successful! Redirecting to login...");
         setTimeout(() => onBack(), 2000);
       } else {
@@ -93,12 +98,13 @@ const ForgotPassword = ({ onBack }) => {
         {message && (
           <div
             style={{
-              color: message.includes("✅") ? "#28a745" : "#c0392b",
+              color: messageType === "success" ? "#1f7f5f" : "#c0392b",
               textAlign: "center",
               marginTop: 10,
               padding: "10px 20px",
               borderRadius: "5px",
-              backgroundColor: message.includes("✅") ? "#eaffea" : "#fff0f0",
+              backgroundColor:
+                messageType === "success" ? "#eaffea" : "#fff0f0",
               fontSize: "14px",
               fontWeight: "500",
             }}
@@ -123,8 +129,10 @@ const ForgotPassword = ({ onBack }) => {
           ) : (
             // Step 2: Token + New Password
             <>
-              <div style={{ padding: "0 40px", color: "#555", fontSize: "14px" }}>
-                  Check your email <strong>{email}</strong> for the reset token.
+              <div
+                style={{ padding: "0 40px", color: "#555", fontSize: "14px" }}
+              >
+                Check your email <strong>{email}</strong> for the reset token.
               </div>
 
               <div className="input">
@@ -160,7 +168,13 @@ const ForgotPassword = ({ onBack }) => {
                 />
               </div>
 
-              <div style={{ padding: "0 40px", color: "#e67e22", fontSize: "14px" }}>
+              <div
+                style={{
+                  padding: "0 40px",
+                  color: "#e67e22",
+                  fontSize: "14px",
+                }}
+              >
                 Token expires in 5 minutes. Request a new one if needed.
               </div>
             </>
@@ -173,7 +187,10 @@ const ForgotPassword = ({ onBack }) => {
               <div
                 className="submit"
                 onClick={handleRequestReset}
-                style={{ opacity: loading ? 0.7 : 1, pointerEvents: loading ? "none" : "auto" }}
+                style={{
+                  opacity: loading ? 0.7 : 1,
+                  pointerEvents: loading ? "none" : "auto",
+                }}
               >
                 {loading ? "Sending..." : "Send Token"}
               </div>
@@ -190,13 +207,19 @@ const ForgotPassword = ({ onBack }) => {
               <div
                 className="submit"
                 onClick={handleResetPassword}
-                style={{ opacity: loading ? 0.7 : 1, pointerEvents: loading ? "none" : "auto" }}
+                style={{
+                  opacity: loading ? 0.7 : 1,
+                  pointerEvents: loading ? "none" : "auto",
+                }}
               >
                 {loading ? "Resetting..." : "Reset Password"}
               </div>
               <div
                 className="submit gray"
-                onClick={() => { setStep(1); setMessage(""); }}
+                onClick={() => {
+                  setStep(1);
+                  setMessage("");
+                }}
                 style={{ pointerEvents: loading ? "none" : "auto" }}
               >
                 Resend Token

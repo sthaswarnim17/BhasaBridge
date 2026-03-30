@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Heart } from "lucide-react";
+import { Heart, BookOpen } from "lucide-react";
 import "./Lessons.css";
 import LessonCompleteModal from "../LessonCompleteModal/LessonCompleteModal";
 
@@ -616,13 +616,47 @@ const Lessons = () => {
 
       <div className="lesson-content">
         {phase === "intro" && (
-          <div className="reading-content">
-            <p>
-              This unit has {currentUnit?.items.length || 0} items. You will
-              learn them in small batches, complete stricter recall in both
-              directions, then pass a short checkpoint.
+          <div className="unit-intro-splash">
+            <div className="intro-icon-wrapper">
+              <BookOpen size={30} className="intro-icon" />
+            </div>
+            <h2>Unit Overview</h2>
+            <p className="intro-sub">
+              This unit contains{" "}
+              <strong>{currentUnit?.items.length || 0} vocabulary items</strong>
+              .
             </p>
-            <button onClick={() => setPhase("learn")}>Start Learning</button>
+
+            <div className="intro-steps">
+              <div className="intro-step-item">
+                <div className="step-bullet">1</div>
+                <div className="step-text">
+                  <strong>Learn in Batches</strong>
+                  <span>Study chunks with active recall.</span>
+                </div>
+              </div>
+              <div className="intro-step-item">
+                <div className="step-bullet">2</div>
+                <div className="step-text">
+                  <strong>Bidirectional</strong>
+                  <span>Translate to and from Nepal Bhasa.</span>
+                </div>
+              </div>
+              <div className="intro-step-item">
+                <div className="step-bullet">3</div>
+                <div className="step-text">
+                  <strong>Checkpoint</strong>
+                  <span>Pass a short test to finish.</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="intro-start-btn"
+              onClick={() => setPhase("learn")}
+            >
+              BEGIN LEARNING
+            </button>
           </div>
         )}
 
@@ -638,8 +672,12 @@ const Lessons = () => {
             {currentBatch.map((item) => (
               <div key={item.id} className="word-row">
                 <span className="word-row-english">{item.english_text}</span>
-                <span className="word-row-newari newari-script">{item.newari_text}</span>
-                <span className="word-row-roman">{item.romanized_text || "—"}</span>
+                <span className="word-row-newari newari-script">
+                  {item.newari_text}
+                </span>
+                <span className="word-row-roman">
+                  {item.romanized_text || "—"}
+                </span>
               </div>
             ))}
             <button onClick={startRecallBatch}>Start Batch Recall</button>
@@ -653,11 +691,20 @@ const Lessons = () => {
               <div className="question-text">
                 Prompt {recallCurrent + 1} of {recallPrompts.length}
               </div>
-              <p style={{ marginTop: -4, color: "var(--teal-dark)", fontWeight: 700 }}>
+              <p
+                style={{
+                  marginTop: -4,
+                  color: "var(--teal-dark)",
+                  fontWeight: 700,
+                }}
+              >
                 {currentRecallPrompt.direction}
               </p>
               <p>
-                Recall for: <strong className="newari-script">{currentRecallPrompt.promptText}</strong>
+                Recall for:{" "}
+                <strong className="newari-script">
+                  {currentRecallPrompt.promptText}
+                </strong>
               </p>
               {currentRecallPrompt.hintText && (
                 <p style={{ color: "var(--content-muted)", marginTop: -4 }}>
@@ -676,7 +723,13 @@ const Lessons = () => {
                 }}
               />
               {recallFeedback && (
-                <p className={recallFeedback.ok ? "recall-feedback-ok" : "recall-feedback-err"}>
+                <p
+                  className={
+                    recallFeedback.ok
+                      ? "recall-feedback-ok"
+                      : "recall-feedback-err"
+                  }
+                >
                   {recallFeedback.text}
                 </p>
               )}

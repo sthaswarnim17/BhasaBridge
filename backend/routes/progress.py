@@ -36,6 +36,19 @@ progress = Blueprint('progress', __name__)
 VALID_LEVELS = ['easy', 'intermediate', 'hard']
 
 
+def _parse_int(value, default, minimum=None, maximum=None):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+
+    if minimum is not None:
+        parsed = max(minimum, parsed)
+    if maximum is not None:
+        parsed = min(maximum, parsed)
+    return parsed
+
+
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
@@ -156,13 +169,10 @@ def start_session():
     """
     data = request.json or {}
     level = data.get('level', '').lower()
-    question_count = int(data.get('question_count', 5))
+    question_count = _parse_int(data.get('question_count', 5), 5, minimum=1, maximum=20)
 
     if level not in VALID_LEVELS:
         return jsonify({'Status': 'level must be easy, intermediate, or hard'}), 400
-    if not (1 <= question_count <= 20):
-        return jsonify({'Status': 'question_count must be between 1 and 20'}), 400
-
     user_id = session['user_id']
     conn = connect_db()
     try:
@@ -215,7 +225,7 @@ def start_session():
 @login_required
 def review_next():
     user_id = session['user_id']
-    limit = max(1, min(int(request.args.get('limit', 10)), 30))
+    limit = _parse_int(request.args.get('limit', 10), 10, minimum=1, maximum=30)
 
     conn = connect_db()
     try:
@@ -735,8 +745,8 @@ def my_session_history():
     user_id = session['user_id']
     level   = request.args.get('level')
     status  = request.args.get('status')
-    limit   = int(request.args.get('limit', 20))
-    offset  = int(request.args.get('offset', 0))
+    limit   = _parse_int(request.args.get('limit', 20), 20, minimum=1, maximum=100)
+    offset  = _parse_int(request.args.get('offset', 0), 0, minimum=0)
 
     filters = ['qs.user_id = %s']
     params  = [user_id]

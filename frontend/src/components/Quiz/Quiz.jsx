@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import "./Quiz.css";
 
 const DIFFICULTIES = ["easy", "intermediate", "hard"];
@@ -25,7 +25,6 @@ const DIFFICULTY_META = {
 const OPTION_KEYS = ["A", "B", "C", "D"];
 
 const Quiz = () => {
-  const navigate = useNavigate();
   const [mode, setMode] = useState("hub");
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -35,14 +34,6 @@ const Quiz = () => {
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [studyGuide, setStudyGuide] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/progress/study-guide", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setStudyGuide(data))
-      .catch(() => setStudyGuide(null));
-  }, []);
 
   useEffect(() => {
     if (!selectedDifficulty || mode !== "practice") return;
@@ -76,9 +67,6 @@ const Quiz = () => {
 
     fetchQuiz();
   }, [mode, selectedDifficulty]);
-
-  const reviewUnlocked = Boolean(studyGuide?.review_unlocked);
-  const reviewDue = studyGuide?.review_due || 0;
 
   const resetPracticeRun = () => {
     setCurrentQuestion(0);
@@ -127,45 +115,54 @@ const Quiz = () => {
   if (mode === "hub") {
     return (
       <div className="quiz-container">
-        <div className="quiz-header">
-          <h1>Practice Hub</h1>
-          <p>
-            Choose the kind of practice you want right now: due review for
-            memory, or free practice for extra exposure.
-          </p>
-        </div>
-
-        <div className="quiz-mode-grid">
-          <div className="quiz-mode-card review">
-            <span className="quiz-mode-pill">Spaced Review</span>
-            <h3>Review Loop</h3>
+        <div className="quiz-hub-shell">
+          <div className="quiz-hub-intro">
+            <span className="quiz-hub-kicker">Daily Practice</span>
+            <h1>Open Practice</h1>
             <p>
-              Work through items that are due now so the phrases you already met
-              do not fade out of memory.
+              Keep your momentum with short multiple-choice rounds that sharpen
+              recall outside guided units.
             </p>
-            <div className="quiz-mode-meta">
-              {reviewUnlocked
-                ? `${reviewDue} item${reviewDue === 1 ? "" : "s"} due now`
-                : "Unlocks after your first completed guided unit"}
+
+            <div className="quiz-hub-points">
+              <div className="quiz-hub-point">
+                <strong>Fast rounds</strong>
+                <span>Perfect for 3 to 5 minute study bursts.</span>
+              </div>
+              <div className="quiz-hub-point">
+                <strong>Pick your level</strong>
+                <span>Beginner, Intermediate, or Advanced anytime.</span>
+              </div>
+              <div className="quiz-hub-point">
+                <strong>Build confidence</strong>
+                <span>Warm up here before longer lesson sessions.</span>
+              </div>
             </div>
-            <button
-              onClick={() => navigate(reviewUnlocked ? "/review" : "/lessons")}
-            >
-              {reviewUnlocked ? "Open Review Loop" : "Start Guided Lesson"}
-            </button>
+
+            <p className="quiz-hub-note">
+              Need spaced repetition? Use the Review tab in the sidebar.
+            </p>
           </div>
 
-          <div className="quiz-mode-card practice">
-            <span className="quiz-mode-pill">Extra Practice</span>
-            <h3>Free Practice</h3>
-            <p>
-              Run a lightweight multiple-choice round by difficulty whenever you
-              want more reps outside the guided curriculum.
-            </p>
-            <div className="quiz-mode-meta">
-              Great for short warmups, confidence checks, and quick revision.
+          <div className="quiz-mode-grid quiz-mode-grid-single">
+            <div className="quiz-mode-card practice">
+              <div
+                className="intro-icon-wrapper quiz-hub-icon practice"
+                style={{ width: "48px", height: "48px", marginBottom: "16px" }}
+              >
+                <Sparkles size={20} />
+              </div>
+              <span className="quiz-mode-pill">Extra Practice</span>
+              <h3>Open Practice</h3>
+              <p>
+                Run a lightweight multiple-choice round by difficulty whenever
+                you want more reps outside the guided curriculum.
+              </p>
+              <div className="quiz-mode-meta">
+                Great for short warmups, confidence checks, and quick revision.
+              </div>
+              <button onClick={openDifficultyMenu}>Start Open Practice</button>
             </div>
-            <button onClick={openDifficultyMenu}>Choose Practice Level</button>
           </div>
         </div>
       </div>
@@ -179,7 +176,7 @@ const Quiz = () => {
           <button className="quiz-back-link" onClick={() => setMode("hub")}>
             Back to Practice Hub
           </button>
-          <h1>Free Practice</h1>
+          <h1>Open Practice</h1>
           <p>Pick a level and do a quick confidence round.</p>
         </div>
 
@@ -203,7 +200,7 @@ const Quiz = () => {
                 </span>
                 <h3>{level.charAt(0).toUpperCase() + level.slice(1)}</h3>
                 <p>{meta.description}</p>
-                <button>Start Free Practice</button>
+                <button>Start Open Practice</button>
               </div>
             );
           })}
@@ -254,7 +251,7 @@ const Quiz = () => {
           >
             {meta.label}
           </span>
-          <h2>Free Practice Complete</h2>
+          <h2>Open Practice Complete</h2>
           <div className="score">
             <span className="quiz-score-value">
               {score}/{questions.length}
@@ -295,9 +292,7 @@ const Quiz = () => {
         <span className="quiz-nav-level" style={{ color: meta.color }}>
           {meta.label} Practice
         </span>
-        <span className="quiz-nav-score">
-          Score: {score}/{currentQuestion}
-        </span>
+        <span className="quiz-nav-score">Score: {score} correct</span>
       </div>
 
       <div className="quiz-progress">

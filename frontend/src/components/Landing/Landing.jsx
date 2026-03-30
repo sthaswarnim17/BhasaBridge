@@ -66,9 +66,8 @@ const steps = [
 ];
 
 const showcase = [
-  { newari: "नमस्ते", roman: "Namaste", english: "Hello" },
+  { newari: "ज्वजलपा", roman: "Jwajalapa", english: "Hello" },
   { newari: "धन्यवाद", roman: "Dhanyabad", english: "Thank You" },
-  { newari: "खुसि", roman: "Khusi", english: "Happy" },
   { newari: "मि चाय्", roman: "Mi chāy", english: "I Want" },
   { newari: "बिज्याच्वनेगु", roman: "Bijyāchwanegu", english: "Welcome" },
 ];
@@ -100,10 +99,6 @@ function LandingPage() {
       <nav className="lp-nav">
         <div className="lp-logo">
           <img src="/bhasabridge_logo.png" alt="BhasaBridge" />
-          <span className="logo-text">
-            <span className="logo-bhasa">Bhasa</span>
-            <span className="logo-bridge">Bridge</span>
-          </span>
         </div>
         <div className="lp-nav-actions">
           <button className="btn-ghost" onClick={() => navigate("/login")}>
@@ -265,10 +260,6 @@ function LandingPage() {
         <div className="footer-inner">
           <div className="footer-brand">
             <img src="/bhasabridge_logo.png" alt="logo" height="34" />
-            <span className="logo-text">
-              <span className="logo-bhasa">Bhasa</span>
-              <span className="logo-bridge">Bridge</span>
-            </span>
           </div>
           <p className="footer-tag">
             Preserving Nepal Bhasa, one lesson at a time.
