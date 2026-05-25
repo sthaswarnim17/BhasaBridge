@@ -101,7 +101,3 @@ python
 
 This project is open source and available under the MIT License.
 
-## 👥 Team
-
-- Frontend Developer: [Your Name]
-- Backend Developer: [Team Member Name]
